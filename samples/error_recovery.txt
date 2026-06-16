@@ -1,0 +1,7 @@
+power p
+bulb b
+unknown_command
+link p.+,b.1
+link b.2,p.-
+run
+exit

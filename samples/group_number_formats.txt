@@ -1,0 +1,24 @@
+# Demonstrate decimal, hex, and binary group state formats
+power p
+bulb b
+switch s1,s2,s3
+group g s1,s2,s3
+link p.+,b.1
+link b.2,s1.1
+link s1.2,s2.1
+link s2.2,s3.1
+link s3.2,p.-
+
+# Decimal 5 = 0b101 -> s1 and s3 closed
+set g 5
+run
+
+# Hexadecimal 0x5 = 0b101
+set g 0x5
+run
+
+# Binary 0b101
+set g 0b101
+run
+
+exit
