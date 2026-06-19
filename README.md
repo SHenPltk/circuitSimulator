@@ -121,7 +121,7 @@ public:
     
     bool setSwitchGroupState(
         const std::string& groupName,
-        const std::string& value);
+        int value);
     
     // 电路仿真
     std::vector<BulbResult> simulate() const;

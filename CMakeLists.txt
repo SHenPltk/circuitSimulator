@@ -23,3 +23,13 @@ target_link_libraries(circuit_cli
     PRIVATE
         circuit_simulator_lib
 )
+
+#simAll
+add_executable(simAll
+    simAll.cpp
+)
+
+target_link_libraries(simAll
+    PRIVATE
+        circuit_simulator_lib
+)

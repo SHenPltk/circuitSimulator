@@ -342,7 +342,9 @@ public:
                 }
 
                 if (switch_groups_.count(tokens[0]) != 0U) {
-                    SetSwitchGroupState(tokens[0], tokens[1]);
+                    const int value =
+                        static_cast<int>(ParseNumberLiteral(tokens[1]));
+                    SetSwitchGroupState(tokens[0], value);
                     return true;
                 }
 
@@ -598,13 +600,13 @@ public:
 
     void SetSwitchGroupState(
         const std::string& group_name,
-        const std::string& value_text) {
+        const int value) {
         const auto it = switch_groups_.find(group_name);
         if (it == switch_groups_.end()) {
             throw std::runtime_error("Unknown switch group: " + group_name);
         }
 
-        const unsigned long long bits = ParseNumberLiteral(value_text);
+        const unsigned long long bits = static_cast<unsigned long long>(value);
         const auto& switches = it->second;
         for (std::size_t i = 0; i < switches.size(); ++i) {
             const bool closed = (bits & (1ULL << i)) != 0ULL;
@@ -1089,7 +1091,7 @@ bool CircuitSimulator::addSwitchGroup(
 
 bool CircuitSimulator::setSwitchGroupState(
     const std::string& groupName,
-    const std::string& value) {
+    const int value) {
     try {
         impl_->SetSwitchGroupState(groupName, value);
         return true;

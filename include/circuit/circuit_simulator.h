@@ -53,7 +53,7 @@ public:
     
     bool setSwitchGroupState(
         const std::string& groupName,
-        const std::string& value);
+        int value);
     
     std::vector<BulbResult> simulate() const;
     
