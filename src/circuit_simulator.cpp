@@ -407,6 +407,37 @@ public:
                 return true;
             }
 
+            if (command == "series") {
+                if (rest.empty()) {
+                    error_lines.push_back(
+                        "series must be: series start,comp1,...,end");
+                    return true;
+                }
+                const auto items = SplitCommaList(rest);
+                if (items.size() < 2) {
+                    error_lines.push_back(
+                        "series needs at least a start and an end endpoint");
+                    return true;
+                }
+                const std::string& beg = items.front();
+                const std::string& end = items.back();
+                const std::vector<std::string> med(
+                    items.begin() + 1, items.end() - 1);
+                LinkSeries(beg, med, end);
+                return true;
+            }
+
+            if (command == "circle") {
+                if (rest.empty()) {
+                    error_lines.push_back(
+                        "circle must be: circle comp1,comp2,...");
+                    return true;
+                }
+                const auto components = SplitCommaList(rest);
+                LinkCircle(components);
+                return true;
+            }
+
             if (command == "exit") {
                 if (!rest.empty()) {
                     error_lines.push_back("exit does not accept arguments");
@@ -614,6 +645,40 @@ public:
         }
     }
 
+    bool LinkSeries(
+        const std::string& beg,
+        const std::vector<std::string>& med,
+        const std::string& end) {
+        if (med.empty()) {
+            AddLink(beg, end);
+            return true;
+        }
+
+        AddLink(beg, med.front() + ".l");
+        for (std::size_t i = 1; i < med.size(); ++i) {
+            AddLink(med[i - 1] + ".r", med[i] + ".l");
+        }
+        AddLink(med.back() + ".r", end);
+        return true;
+    }
+
+    bool LinkCircle(const std::vector<std::string>& components) {
+        if (components.empty()) {
+            return false;
+        }
+        if (components.size() == 1U) {
+            AddLink(components.front() + ".r", components.front() + ".l");
+            return true;
+        }
+
+        LinkSeries(
+            components.front() + ".r",
+            std::vector<std::string>(components.begin() + 1, components.end() - 1),
+            components.back() + ".l");
+        AddLink(components.back() + ".r", components.front() + ".l");
+        return true;
+    }
+
     std::vector<BulbState> Run() const {
         if (power_index_ == -1) {
             throw std::runtime_error("No power component defined");
@@ -796,7 +861,8 @@ private:
     static bool IsFirstPinName(ComponentType type, const std::string& name) {
         if (type == ComponentType::Power) {
             return name == "+" || name == "1" || name == "p" ||
-                   name == "pos" || name == "positive";
+                   name == "pos" || name == "positive" ||
+                   name == "l" || name == "left";
         }
         return name == "1" || name == "a" || name == "l" ||
                name == "left";
@@ -805,7 +871,8 @@ private:
     static bool IsSecondPinName(ComponentType type, const std::string& name) {
         if (type == ComponentType::Power) {
             return name == "-" || name == "2" || name == "n" ||
-                   name == "neg" || name == "negative";
+                   name == "neg" || name == "negative" ||
+                   name == "r" || name == "right";
         }
         return name == "2" || name == "b" || name == "r" ||
                name == "right";
@@ -1096,6 +1163,27 @@ bool CircuitSimulator::setSwitchGroupState(
         impl_->SetSwitchGroupState(groupName, value);
         return true;
     } catch (const std::exception& e) {
+        return false;
+    }
+}
+
+bool CircuitSimulator::linkSeries(
+    const std::string& beg,
+    const std::vector<std::string>& med,
+    const std::string& end) {
+    try {
+        impl_->LinkSeries(beg, med, end);
+        return true;
+    } catch (const std::exception& /*e*/) {
+        return false;
+    }
+}
+
+bool CircuitSimulator::linkCircle(
+    const std::vector<std::string>& components) {
+    try {
+        return impl_->LinkCircle(components);
+    } catch (const std::exception& /*e*/) {
         return false;
     }
 }

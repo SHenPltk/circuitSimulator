@@ -33,3 +33,12 @@ target_link_libraries(simAll
     PRIVATE
         circuit_simulator_lib
 )
+
+add_executable(test_link_api
+    test_link_api.cpp
+)
+
+target_link_libraries(test_link_api
+    PRIVATE
+        circuit_simulator_lib
+)

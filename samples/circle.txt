@@ -1,0 +1,9 @@
+power p
+bulb b
+switch s1
+circle p,s1,b
+set s1 1
+run
+set s1 0
+run
+exit

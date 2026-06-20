@@ -54,6 +54,16 @@ public:
     bool setSwitchGroupState(
         const std::string& groupName,
         int value);
+
+    bool linkSeries(
+        const std::string& beg,
+        const std::vector<std::string>& med,
+        const std::string& end
+    );
+
+    bool linkCircle(
+        const std::vector<std::string>& Components
+    );
     
     std::vector<BulbResult> simulate() const;
     

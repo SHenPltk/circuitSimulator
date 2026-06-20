@@ -1,4 +1,4 @@
-#include "circuit\circuit_simulator.h"
+#include "circuit/circuit_simulator.h"
 #include <iostream>
 
 using namespace circuit;

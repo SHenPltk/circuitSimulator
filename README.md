@@ -6,6 +6,7 @@
 
 - **元件定义**: 支持定义电源(Power)、电阻(Resistor)、开关(Switch)、灯泡(Bulb)
 - **导线连接**: 使用 `link x,y` 连接元件引脚
+- **串联/环形连接**: 使用 `series` / `circle` 批量连接多个元件
 - **开关控制**: 使用 `set switch_name 0/1` 控制开关状态
 - **电路仿真**: `run` 命令计算并显示所有灯泡状态(0=熄灭，1=点亮)
 - **动态修改**: 支持添加/删除导线、清空电路、实时查看电路状态
@@ -39,8 +40,8 @@ link component_name.pin1,component_name.pin2
 ```
 
 引脚命名约定：
-- 电源: `+` / `-` （或 `p`, `n`, `1`, `2`）
-- 其他元件: `1` / `2` （或 `a`, `b`, `left`, `right`）
+- 电源: `+` / `-` （或 `p`/`n`, `l`/`r`, `left`/`right`, `1`/`2`）
+- 其他元件: `1` / `2` （或 `a`/`b`, `l`/`r`, `left`/`right`）
 
 示例：
 ```
@@ -76,7 +77,28 @@ clear                       # 清空整个电路（所有元件和连接）
 clear components            # 只清空元件（保留连接）
 clear links                 # 只清空导线连接（保留元件）
 del endpoint1,endpoint2     # 删除指定的导线连接
+series start,comp1,...,end  # 串联连接：start/end 为带端口的引脚，中间为元件标识符
+circle comp1,comp2,...      # 环形连接：按顺序将多个元件首尾相连
 exit                        # 退出程序
+```
+
+`series` 示例（等效于上面的基本串联电路）：
+```
+power p
+resistor r1
+bulb b1
+series p.+,r1,b1,p.-
+run
+```
+
+`circle` 示例：
+```
+power p
+switch s1
+bulb b1
+circle p,s1,b1
+set s1 1
+run
 ```
 
 ### 6. 错误处理
@@ -99,7 +121,7 @@ public:
                       const std::string& identifier);
     
     // 批量添加元件
-    void addComponents(const std::string& type,
+    bool addComponents(const std::string& type,
                        const std::vector<std::string>& identifiers);
     
     // 导线连接
@@ -109,6 +131,12 @@ public:
     // 删除导线
     bool removeLink(const std::string& endpoint1,
                     const std::string& endpoint2);
+    
+    // 串联/环形批量连接
+    bool linkSeries(const std::string& beg,
+                    const std::vector<std::string>& med,
+                    const std::string& end);
+    bool linkCircle(const std::vector<std::string>& components);
     
     // 开关控制
     bool setSwitchState(const std::string& identifier,
@@ -191,7 +219,7 @@ std::cout << sim.toString() << std::endl;
 #include "circuit/cli.h"
 
 int main(int argc, char* argv[]) {
-    return circuit::cli::run(argc, argv);
+    return circuit::run(argc, argv);
 }
 ```
 
@@ -316,8 +344,8 @@ b1 0
 - `bulb`: 灯泡（或 `lamp`）
 
 ### 引脚别名
-电源 (+) : `+`, `p`, `pos`, `positive`, `1`  
-电源 (-) : `-`, `n`, `neg`, `negative`, `2`  
+电源 (+) : `+`, `p`, `pos`, `positive`, `l`, `left`, `1`  
+电源 (-) : `-`, `n`, `neg`, `negative`, `r`, `right`, `2`  
 其他元件 (1) : `1`, `a`, `l`, `left`  
 其他元件 (2) : `2`, `b`, `r`, `right`
 

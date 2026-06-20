@@ -1,0 +1,9 @@
+power p
+bulb b
+series p.+,p.-
+run
+circle b
+run
+series p.+
+circle
+exit
