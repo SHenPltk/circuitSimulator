@@ -42,3 +42,12 @@ target_link_libraries(test_link_api
     PRIVATE
         circuit_simulator_lib
 )
+
+add_executable(test_format_output
+    test_format_output.cpp
+)
+
+target_link_libraries(test_format_output
+    PRIVATE
+        circuit_simulator_lib
+)

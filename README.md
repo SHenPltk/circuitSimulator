@@ -79,6 +79,7 @@ clear links                 # 只清空导线连接（保留元件）
 del endpoint1,endpoint2     # 删除指定的导线连接
 series start,comp1,...,end  # 串联连接：start/end 为带端口的引脚，中间为元件标识符
 circle comp1,comp2,...      # 环形连接：按顺序将多个元件首尾相连
+output [format]             # 按指定格式输出开关/灯泡状态
 exit                        # 退出程序
 ```
 
@@ -101,7 +102,36 @@ set s1 1
 run
 ```
 
-### 6. 错误处理
+### 6. 格式化输出
+
+`output` 命令使用格式字符串输出开关或灯泡状态，支持以下占位符：
+
+- `@s<sep>@`：将所有开关状态（0/1）以 `<sep>` 分隔输出
+- `@b<sep>@`：将所有灯泡状态（0/1）以 `<sep>` 分隔输出
+
+格式字符串支持 `\n`、`\t`、`\\`、`\"`、`\'` 转义，可用引号包裹。
+
+示例：
+```
+power p
+switch s1,s2
+bulb b1,b2
+link p.+,s1.1
+link s1.2,b1.1
+link b1.2,s2.1
+link s2.2,b2.1
+link b2.2,p.-
+set s1 1
+set s2 1
+output "switches: @s @ | bulbs: @b @\n"
+```
+
+输出：
+```
+switches: 1 1 | bulbs: 1 1
+```
+
+### 7. 错误处理
 交互模式下，任何命令出错都会在终端显示 `Error: ...` 信息，但程序不会退出，可继续输入后续命令。
 
 ## C++ API 接口
@@ -153,6 +183,9 @@ public:
     
     // 电路仿真
     std::vector<BulbResult> simulate() const;
+    
+    // 格式化输出
+    std::string formatOutput(const std::string& format) const;
     
     // 清空电路
     void clearAll();

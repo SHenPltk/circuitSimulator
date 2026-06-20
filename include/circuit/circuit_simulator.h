@@ -67,6 +67,8 @@ public:
     
     std::vector<BulbResult> simulate() const;
     
+    std::string formatOutput(const std::string& format) const;
+    
     std::string toString() const;
     
     void clearAll();

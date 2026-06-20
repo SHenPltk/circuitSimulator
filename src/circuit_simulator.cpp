@@ -55,6 +55,47 @@ std::string ToLower(std::string value) {
     return value;
 }
 
+std::string UnescapeString(const std::string& text) {
+    std::string result;
+    result.reserve(text.size());
+    for (std::size_t i = 0; i < text.size(); ++i) {
+        if (text[i] == '\\' && i + 1 < text.size()) {
+            const char next = text[i + 1];
+            if (next == 'n') {
+                result.push_back('\n');
+                ++i;
+                continue;
+            }
+            if (next == 't') {
+                result.push_back('\t');
+                ++i;
+                continue;
+            }
+            if (next == 'r') {
+                result.push_back('\r');
+                ++i;
+                continue;
+            }
+            if (next == '\\' || next == '"' || next == '\'') {
+                result.push_back(next);
+                ++i;
+                continue;
+            }
+        }
+        result.push_back(text[i]);
+    }
+    return result;
+}
+
+std::string StripQuotes(const std::string& text) {
+    if (text.size() >= 2 &&
+        ((text.front() == '"' && text.back() == '"') ||
+         (text.front() == '\'' && text.back() == '\''))) {
+        return text.substr(1, text.size() - 2);
+    }
+    return text;
+}
+
 std::vector<std::string> SplitWords(const std::string& line) {
     std::istringstream input(line);
     std::vector<std::string> tokens;
@@ -438,6 +479,17 @@ public:
                 return true;
             }
 
+            if (command == "output") {
+                if (rest.empty()) {
+                    error_lines.push_back(
+                        "output must be: output [format]");
+                    return true;
+                }
+                const std::string format = StripQuotes(rest);
+                output_lines.push_back(FormatOutput(format));
+                return true;
+            }
+
             if (command == "exit") {
                 if (!rest.empty()) {
                     error_lines.push_back("exit does not accept arguments");
@@ -677,6 +729,76 @@ public:
             components.back() + ".l");
         AddLink(components.back() + ".r", components.front() + ".l");
         return true;
+    }
+
+    std::string ExpandFormatPlaceholder(
+        char kind,
+        const std::string& sep) const {
+        std::string output;
+        bool first = true;
+
+        if (kind == 's') {
+            for (const auto& component : components_) {
+                if (component.type != ComponentType::Switch) {
+                    continue;
+                }
+                if (!first) {
+                    output += sep;
+                }
+                first = false;
+                output += component.switch_closed ? '1' : '0';
+            }
+            return output;
+        }
+
+        std::vector<BulbState> states;
+        try {
+            states = Run();
+        } catch (...) {
+            states.clear();
+        }
+
+        for (int bulb_index : bulb_indices_) {
+            const std::string& id = components_[bulb_index].identifier;
+            bool on = false;
+            for (const auto& state : states) {
+                if (state.identifier == id) {
+                    on = state.on;
+                    break;
+                }
+            }
+            if (!first) {
+                output += sep;
+            }
+            first = false;
+            output += on ? '1' : '0';
+        }
+        return output;
+    }
+
+    std::string FormatOutput(const std::string& raw_format) const {
+        const std::string format = UnescapeString(raw_format);
+
+        std::string result;
+        result.reserve(format.size());
+        std::size_t i = 0;
+        while (i < format.size()) {
+            if (format[i] == '@' && i + 1 < format.size() &&
+                (format[i + 1] == 's' || format[i + 1] == 'b')) {
+                const char kind = format[i + 1];
+                const std::size_t close = format.find('@', i + 2);
+                if (close != std::string::npos) {
+                    const std::string sep =
+                        format.substr(i + 2, close - (i + 2));
+                    result += ExpandFormatPlaceholder(kind, sep);
+                    i = close + 1;
+                    continue;
+                }
+            }
+            result.push_back(format[i]);
+            ++i;
+        }
+        return result;
     }
 
     std::vector<BulbState> Run() const {
@@ -1211,6 +1333,14 @@ std::vector<BulbResult> CircuitSimulator::simulate() const {
 std::string CircuitSimulator::toString() const {
     try {
         return impl_->PrintState();
+    } catch (...) {
+        return "";
+    }
+}
+
+std::string CircuitSimulator::formatOutput(const std::string& format) const {
+    try {
+        return impl_->FormatOutput(format);
     } catch (...) {
         return "";
     }
