@@ -1,0 +1,26 @@
+0 0 0 | 0 0
+0 0 1 | 0 0
+0 1 0 | 1 1
+0 1 1 | 0 0
+1 0 0 | 1 0
+1 0 1 | 1 1
+1 1 0 | 1 0
+1 1 1 | 0 0
+
+power E
+resistor R
+bulb L1
+bulb L2
+switch a
+switch b
+switch c
+
+link E.-,R.1
+link R.2,a.1
+link a.2,L1.1
+link L1.2,E.+
+link R.2,b.1
+link b.2,c.1
+link c.2,E.+
+link a.2,L2.1
+link L2.2,c.1
