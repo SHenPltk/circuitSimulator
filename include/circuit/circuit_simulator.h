@@ -40,6 +40,8 @@ public:
     
     bool addLink(const std::string& endpoint1,
                  const std::string& endpoint2);
+
+    bool addLinks(const std::vector<std::string>& endpoints);
     
     bool removeLink(const std::string& endpoint1,
                     const std::string& endpoint2);
@@ -66,6 +68,8 @@ public:
     );
     
     std::vector<BulbResult> simulate() const;
+
+    unsigned simulate2() const;
     
     std::string formatOutput(const std::string& format) const;
     

@@ -41,6 +41,34 @@ int main() {
         return 1;
     }
 
-    std::cout << "linkSeries and linkCircle API tests passed\n";
+    // Test addLinks and simulate2 with two parallel branches.
+    CircuitSimulator sim3;
+    sim3.addComponent("power", "p");
+    sim3.addComponents("switch", {"s1", "s2"});
+    sim3.addComponents("bulb", {"b1", "b2"});
+    if (!sim3.addLinks({"p.+", "s1.1", "s2.1"})) {
+        std::cerr << "addLinks for positive node failed\n";
+        return 1;
+    }
+    if (!sim3.addLink("s1.2", "b1.1")) {
+        std::cerr << "branch 1 link failed\n";
+        return 1;
+    }
+    if (!sim3.addLink("s2.2", "b2.1")) {
+        std::cerr << "branch 2 link failed\n";
+        return 1;
+    }
+    if (!sim3.addLinks({"p.-", "b1.2", "b2.2"})) {
+        std::cerr << "addLinks for negative node failed\n";
+        return 1;
+    }
+    sim3.setSwitchState("s1", true);
+    sim3.setSwitchState("s2", false);
+    if (sim3.simulate2() != 0b10U) {
+        std::cerr << "simulate2 returned unexpected bit pattern\n";
+        return 1;
+    }
+
+    std::cout << "linkSeries, linkCircle, addLinks and simulate2 API tests passed\n";
     return 0;
 }

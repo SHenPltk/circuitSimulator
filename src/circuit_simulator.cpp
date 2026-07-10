@@ -1248,6 +1248,18 @@ bool CircuitSimulator::addLink(const std::string& endpoint1,
     }
 }
 
+bool CircuitSimulator::addLinks(const std::vector<std::string>& endpoints) {
+    try {
+        const unsigned n = static_cast<unsigned>(endpoints.size());
+        for (unsigned i = 1; i < n; ++i) {
+            impl_->AddLink(endpoints[0], endpoints[i]);
+        }
+        return true;
+    } catch (const std::exception& /*e*/) {
+        return false;
+    }
+}
+
 bool CircuitSimulator::removeLink(const std::string& endpoint1,
                                    const std::string& endpoint2) {
     try {
@@ -1324,6 +1336,19 @@ std::vector<BulbResult> CircuitSimulator::simulate() const {
             results.push_back(result);
         }
         
+        return results;
+    } catch (...) {
+        return {};
+    }
+}
+
+unsigned CircuitSimulator::simulate2() const {
+    try {
+        const auto bulbStates = impl_->Run();
+        unsigned results = 0;
+        for (const auto& state : bulbStates) {
+            results = (results << 1U) | (state.on ? 1U : 0U);
+        }
         return results;
     } catch (...) {
         return {};
